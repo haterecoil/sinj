@@ -143,10 +143,6 @@ socket.on("playersList", function(list){
 	}
 });
 
-//signifie la fin de partie
-socket.on("wrongLetter", function(data){
-	gameEnds("misplay", data.letter );
-});
 
 //update le game-board
 socket.on("newLetter", function(data){
@@ -164,14 +160,6 @@ socket.on("newLetter", function(data){
 	updateScore(data.player);
 });
 
-socket.on("completeWord", function(data){
-	console.log(data);		
-});
-
-
-socket.on("playerPassed", function(data){
-	gameEnds("pass", data);
-});
 
 socket.on("nextPlayerIs", function(data){
 	if (data.next == myId){
@@ -200,6 +188,21 @@ function updateScore(player){
 	//debugger;
 	div[0].innerHTML = parseInt(div[0].innerHTML)+1
 }
+
+/*
+* 	fin de partie
+ */
+
+socket.on("completeWord", function(data){
+	gameEnds("complete", data);	
+});
+socket.on("playerPassed", function(data){
+	gameEnds("pass", data);
+});
+socket.on("wrongLetter", function(data){
+	gameEnds("letter", data);
+});
+
 /*
 *   data.player
 * 		.letter
@@ -215,13 +218,13 @@ function gameEnds(reason, data){
 		result = " perdu ";
 		message = " à cause d'une lettre en trop.";
 
-		var possible = " possible ";
+		var possible = data.possible;
 		$("#sm-possibles").html(possible);
 	} else if (reason == "pass"){
 		result = " perdu ";
 		message = " car il a passé.";
 
-		var possible = " possible ";
+		var possible = data.possible;
 		$("#sm-possibles").html(possible);	
 	} else if (reason == "complete") {
 		result = " gagné ";

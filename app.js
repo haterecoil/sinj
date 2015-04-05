@@ -216,34 +216,63 @@ io.on('connection', function(socket){
     socket.on('myLetterIs', function (data) { 
         /*
             If data == false    le joueur passe
-                fin de partie
+                fin de partie, playerPassed
+                .emit('playerPassed', data = {
+                    letter,     // str : la lettre en faute
+                    player,     // str : le joueur fautif
+                    possible    // obj : les possibilités
+                })
             If data == string
                 est-ce que la lettre, une fois ajoutée au mot précédent fait un mot ?
-                Oui :
-                    .emit("newLetter", lettre);
+                Oui et la partie peut continuer:
+                    .emit("newLetter", data = {
+                        letter,     //str : lettre à ajouter
+                        player,     //str : le dernier à avoir joué
+                    });
+                    .emit("nextPlayerIs", data = {
+                        next        //int : l'ID du joueur prochain
+                    })
+                Oui et la partie ne peut pas continuer : 
+                    .emit("completeWord", data = {
+                        word,       //str : le mot
+                        player      //str : le joueur qui a gagné
+                    })
                 Non :
-                    .emit("wrongLetter", {lettre, player})
+                    .emit("wrongLetter", data = {
+                        letter,
+                        player,
+                        possible
+                    })
          */
         
         console.log("[EVT] my letter is " + data.letter);
         var nextWord = rooms[socket.roomName].word+data.letter;
 
          if (data.letter == false){
-            socket.emit('playerPassed', {nickname : socket.nickname} );
+            socket.emit('playerPassed', {player : socket.nickname,
+                                        letter : data.letter,
+                                        possible : getWordsStartingWith(rootNode, rooms[socket.roomName].word)} 
+            );
          }
          else if ( typeof data.letter == "string"){
-            if ( wordExistsStartingWith(rootNode, nextWord) ) {
+            if ( wordExistsStartingWith(rootNode, nextWord) ) {  //le jeu continue
                 rooms[socket.roomName].word += data.letter;
-                io.to(socket.roomName).emit("newLetter", {letter : data.letter, player : socket.nickname});
+                io.to(socket.roomName).emit("newLetter", {letter : data.letter, 
+                                                          player : socket.nickname});
 
                 //next player = (current + 1) % nombre de joueurs;
                 var nextPlayer = (socket.roleId + 1) % rooms[socket.roomName].players.length;
                 io.to(socket.roomName).emit("nextPlayerIs", { next : nextPlayer });   
             } 
-            else if ( wordExists(rootNode,nextWord) ){
-                io.to(socket.roomName).emit("completeWord", {word : nextWord, player : socket.nickname})
-            } else {
-                io.to(socket.roomName).emit("wrongLetter", {letter : data.letter, player : socket.nickname});
+            else if ( wordExists(rootNode,nextWord) ){          //mot complet
+                io.to(socket.roomName).emit("completeWord", {word : nextWord, 
+                                                            player : socket.nickname}
+                );
+            } else {                                            //mauvaise lettre
+                io.to(socket.roomName).emit("wrongLetter", {letter : data.letter, 
+                                                            player : socket.nickname,
+                                                            possible : getWordsStartingWith(rootNode, rooms[socket.roomName].word)}
+                );
             }
          }
 
