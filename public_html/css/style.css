@@ -1,21 +1,63 @@
-body{ width: 100%; height: auto; background-color: #F6F6F6; font-size: 16px; }
-
-form * { display: block; margin: 5px;}
-form input { height: 1.5em; }
-
-li.room div {
-  display: inline-block;
+body{ 
+	width: 100%; 
+	background-color: #FFCE74; 
+	font-family: 'Open Sans', sans-serif;
+	color: #334D5C;
+	overflow: hidden;
+	font-size: 18px;
 }
 
-li.g-stroke div {
-  display: inline-block;
-  font-size: 1.3em;
-  line-height: 1.7em;
+.hidden {
+	display: none;
 }
 
-li.g-stroke div:nth-child(1) {
-  font-weight: 900;
-  width: 200px;
-  overflow: hidden;
+.container-game{
+	margin-left: 35%;
+	width: 500px;
+	margin-top: 50px;
 }
-.hidden {display: none;}
+.title-game{
+	font-family: 'Roboto', sans-serif;
+	font-size: 80px;
+}
+
+.rules-game{
+	margin-top: 30px;
+}
+
+.game{
+	margin-top: 50px;
+}
+
+label, input{
+	display: block;
+	margin: 5px;
+	border-radius: 5px;
+	border :0px solid black;
+}
+
+button{
+	cursor: pointer;
+}
+
+.btn-typeone {
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 15px;
+  background: #8f7a66;
+  padding: 5px 10px 5px 10px;
+  border : 0px solid black;
+  margin-top: 10px;
+}
+
+.btn-typeone:hover {
+  background: #334D5C;
+}
+
+.btn-play{
+	display: inline;
+}
+
+#pseudo-error, #rc-errors{
+	color: #DF5A49;
+}

@@ -6,88 +6,103 @@
 	<link rel="stylesheet" href="./css/reset.css">
 	<link rel="stylesheet" href="./css/style.css">
 	<script src="./js/jquery-1.9.js"></script>
+	
+	<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+
 </head>
 <script src="./js/socket-io.js"></script>
 <script>
   var socket = io('http://localhost:8080');
 </script>
 <body>
+
 <!-- liste les parties, permet de rejoindre une existante ou de créer -->
-	<div id="pseudo">
-	<form action="javascript:void(0)" id="nickname-form">
-		<label for="nickname">pseudo
-			<input type="text" name="nickname" id="nickname" placeholder="votre pseudo">
-		</label>
-		<button type="submit">Go !</button>
-	</form>
-	<div id="pseudo-error"></div>
-	</div>
-	<div id="rooms-listing" class="hidden">
-		<ul id="rooms">
-<!-- 			<li class="room">
-				<div class="room-name"></div>
-				<div class="room-info"><a href="" class="room-info-players"></a><a href="" class="room-info-join"></a></div>
-			</li> -->
-		</ul>
-		<div id="room-create">
-			<form action="javascript:void(0);" id="rc-form">
-				<label for="rc-name">Nom de la partie
-					<input type="text" name="rc-name" id="rc-name" placeholder="nom de la partie">
-				</label>
-				<label for="rc-password">Mot de passe
-					<input type="text" name="rc-password" id="rc-password" placeholder="optionnel">
-				</label>
-				<label for="rc-maxplayers">Nombre de joueurs max
-					<input type="text" name="rc-maxplayers" id="rc-maxplayers">
-				</label>
-				<button type="submit" value="Créer">Créer</button>
-			</form>
+	<div class="container-game">
+
+		<div class="header">
+			<h1 class="title-game">Le Singe</h1>
+			<p class="rules-game">Lettre par lettre forme le mot le plus long !</p>
 		</div>
-		<div id="rc-errors"></div>
-	</div>
-<!-- jeu : les plusieurs personnes qui jouent (sur un côté) avec score,
-			l'input (placeholder == le mot actuel
-			la scène de jeu) -->
-	<div id="game" class="hidden">
-		<ul id="game-players">
-<!-- 			<li class="game-player">
-				<div class="gp-name"></div>
-				<div class="gp-score"></div>
-			</li> -->
-		</ul>
-		<div id="game-board">
-			<ul id="game-board-ul">
-<!-- 				<li class="g-stroke">
-					<div class="gs-player"></div>
-					<div class="gs-letter"></div>
-					<div class="gs-word"></div>
+
+
+		<div id="pseudo" class="game begin">
+		<form action="javascript:void(0)" id="nickname-form">
+			<label for="nickname" class="pseudo">Pseudo
+				<input type="text" name="nickname" id="nickname" placeholder="King Kong">
+			</label>
+			<button type="submit" class="btn-typeone">Go!</button>
+		</form>
+		<div id="pseudo-error"></div>
+		</div>
+		<div id="rooms-listing" class="hidden">
+			<ul id="rooms">
+	<!-- 			<li class="room">
+					<div class="room-name"></div>
+					<div class="room-info"><a href="" class="room-info-players"></a><a href="" class="room-info-join"></a></div>
 				</li> -->
 			</ul>
+
+			<div id="room-create">
+				<form action="javascript:void(0);" id="rc-form">
+					<label for="rc-name">Nom de la partie
+						<input type="text" name="rc-name" id="rc-name" placeholder="Dans la savane...">
+					</label>
+					<label for="rc-password">Mot de passe
+						<input type="text" name="rc-password" id="rc-password" placeholder="Optionnel">
+					</label>
+					<label for="rc-maxplayers">Nombre de joueurs max
+						<input type="text" name="rc-maxplayers" id="rc-maxplayers">
+					</label>
+					<button type="submit" value="Créer" class="btn-typeone">Créer</button>
+				</form>
+			</div>
+			<div id="rc-errors"></div>
 		</div>
-		<div id="game-controls">
-			<form action="javascript:void(0);" id="gc-play">
-				<label for="gc-letter">Votre lettre : 
-					<input type="text" name="gc-letter" id="gc-letter" maxlength="1" disabled>
-				</label>
-				<button type="submit" id="gc-submit" value="valider">Valider</button>
-			</form>	
-			<form action="javascript:void(0);" id="gc-pass-form">
-				<button type="submit" id="gc-pass" value="pass">Passer</button>
-			</form>	
+	<!-- jeu : les plusieurs personnes qui jouent (sur un côté) avec score,
+				l'input (placeholder == le mot actuel
+				la scène de jeu) -->
+		<div id="game" class="hidden game">
+			<ul id="game-players">
+	<!-- 			<li class="game-player">
+					<div class="gp-name"></div>
+					<div class="gp-score"></div>
+				</li> -->
+			</ul>
+			<div id="game-board">
+				<ul id="game-board-ul">
+	<!-- 				<li class="g-stroke">
+						<div class="gs-player"></div>
+						<div class="gs-letter"></div>
+						<div class="gs-word"></div>
+					</li> -->
+				</ul>
+			</div>
+			<div id="game-controls">
+				<form action="javascript:void(0);" id="gc-play">
+					<label for="gc-letter">Votre lettre : 
+						<input type="text" name="gc-letter" id="gc-letter" maxlength="1" disabled>
+					</label>
+					<button type="submit" id="gc-submit" value="valider" class="btn-typeone btn-play">Valider</button>
+				</form>	
+				<form action="javascript:void(0);" id="gc-pass-form">
+					<button type="submit" id="gc-pass" value="pass" class="btn-typeone btn-play">Passer</button>
+				</form>	
+			</div>
 		</div>
-	</div>
-<!-- fin de jeu
-		définition des mots possibles
-		scores 
-		recréer un salon
-		aller au lobby -->
-	<div id="score" class="hidden">
-		<form action="javascript:void(0)" id="score-form">
-			<button type="submit" id="sf-replay">Rejouer</button>
-		</form>
-		<form action="javascript:void(0)" id="score-form">
-			<button type="submit" id="sf-lobby">Lobby</button>
-		</form>
+	<!-- fin de jeu
+			définition des mots possibles
+			scores 
+			recréer un salon
+			aller au lobby -->
+		<div id="score" class="hidden">
+			<form action="javascript:void(0)" id="score-form">
+				<button type="submit" id="sf-replay" class="btn-typeone btn-play">Rejouer</button>
+			</form>
+			<form action="javascript:void(0)" id="score-form">
+				<button type="submit" id="sf-lobby" class="btn-typeone btn-play">Lobby</button>
+			</form>
+		</div>
 	</div>
 
 	<script src="./js/script.js"></script>
