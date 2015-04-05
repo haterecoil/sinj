@@ -3,7 +3,7 @@ body{
 	background-color: #FFCE74; 
 	font-family: 'Open Sans', sans-serif;
 	color: #334D5C;
-	overflow: hidden;
+	overflow: auto;
 	font-size: 18px;
 }
 
@@ -40,7 +40,7 @@ button{
 	cursor: pointer;
 }
 
-.btn-typeone {
+.btn-typeone, .room-join {
   border-radius: 10px;
   color: #ffffff;
   font-size: 15px;
@@ -48,9 +48,10 @@ button{
   padding: 5px 10px 5px 10px;
   border : 0px solid black;
   margin-top: 10px;
+  cursor: pointer;
 }
 
-.btn-typeone:hover {
+.btn-typeone:hover, .room-join:hover {
   background: #334D5C;
 }
 
@@ -60,4 +61,75 @@ button{
 
 #pseudo-error, #rc-errors{
 	color: #DF5A49;
+}
+
+.room{
+	display: inline;
+    list-style: none; /* pour enlever les puces sur IE7 */
+    margin: 30px;
+}
+.room-name{
+	display: inline-block;
+	width: 250px;
+}
+
+.room-info{
+	display: inline-block;
+	width: 50px;
+}
+
+.room-join{
+	display: inline-block;
+}
+
+#rc-form{
+	border : 1px solid #334D5C;
+	margin-top: 60px;
+	padding: 10px;
+	border-radius: 5px;
+	width: 400px;
+}
+
+.create-server{
+	font-size: 20px;
+	margin-bottom: 30px;
+}
+
+.game-player{
+	display: inline;
+	list-style: none;
+}
+
+.gp-name{
+	display: inline;
+	background-color: #fefefe;
+	padding-left:10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-radius: 5px;
+}
+
+.gp-score{
+	display: inline;
+	font-size: 25px;
+	margin-left: 10px;
+}
+
+#game-board p:nth-child(1){margin: 15px;}
+
+.g-stroke{
+	list-style: none;
+}
+.g-stroke div{
+	display: inline-block;
+}
+
+.gs-player {color: #707070; width: 90px;}
+
+#gc-play{
+	margin-top: 50px;
+	border: 1px solid black;
+	padding: 10px;
+	border-radius: 5px;
 }

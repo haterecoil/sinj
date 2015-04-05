@@ -72,7 +72,7 @@ socket.on("list", function(rooms){
 
 	//console.log(rooms);
 	if (rooms.length == 0) {
-		$('#rooms').html('<p> Pas de salon pour l\'isntant, n\'hésitez pas à en créer un !</p>');
+		$('#rooms').html('<p> Pas de salon pour l\'instant, n\'hésitez pas à en créer un !</p>');
 	}
 	else {
 		$('#rooms').html('');
@@ -83,7 +83,7 @@ socket.on("list", function(rooms){
 												rooms[i].maxPlayers+'</div> \
 						<a class="room-join" data-roomname='+rooms[i].roomName+
 						' >Rejoindre</a>\
-					</li>' );
+					</li></br>' );
 		}
 	}
 	$('.room-join').click(function(e){
@@ -147,15 +147,16 @@ socket.on("playersList", function(list){
 //update le game-board
 socket.on("newLetter", function(data){
 	word += data.letter;
+	$("#gb-word").html(word);
 
 	$("#game-board-ul")
 		.append(
 			'<li class="g-stroke">\
 				<div class="gs-player">'+data.player+'</div>\
 				<div class="gs-letter">'+data.letter+'</div>\
-				<div class="gs-word">'+word+'</div>\
 			</li>'
 		);
+				// <div class="gs-word">'+word+'</div>\
 
 	updateScore(data.player);
 });
@@ -219,17 +220,23 @@ function gameEnds(reason, data){
 		message = " à cause d'une lettre en trop.";
 
 		var possible = data.possible;
-		$("#sm-possibles").html(possible);
+		$("#sm-possibles").prepend("<p>Autres mots possibles : </p>");
+		for (var i = 0; i < possible.length; i++){
+			$("#sm-possibles").append("<li>"+possible[i]+"</li>");	
+		}	
 	} else if (reason == "pass"){
 		result = " perdu ";
 		message = " car il a passé.";
 
 		var possible = data.possible;
-		$("#sm-possibles").html(possible);	
+		$("#sm-possibles").prepend("<p>Autres mots possibles : </p>");
+		for (var i = 0; i < possible.length; i++){
+			$("#sm-possibles").append("<li>"+possible[i]+"</li>");	
+		}
 	} else if (reason == "complete") {
 		result = " gagné ";
 		message = " car il a écrit le mot le plus long !";
-
+		$('#sm-definition').prepend("<p> Définition de "+data.word+".</p>")
 		$('#sm-definition').load('http://www.larousse.fr/dictionnaires/francais/'+data.word+' ul.Definitions');
 	}
 
@@ -244,15 +251,37 @@ function gameEnds(reason, data){
 
 }
 
-function showScore(){
-	//DOM manipulation
+//relance une partie
+$("#score-form").submit(function(){
+	$("#sf-replay").html("en attente de réponse");
+	socket.emit("replay");
+});
+
+// //retourner au lobby
+// $("#sf-lobby").submit(function(){
+
+// });
+
+socket.on("replayAccepted", function(){
+	$("#sf-replay").html("Rejouer");
+	$("#game-board-ul").html("");
+	$("#gb-word").html("");
+	$("#score-info").html('				<p id="score-message">\
+					<span id="sm-player"></span> a\
+					<span id="sm-result"></span> !\
+				</p>\
+				<p id="sm-message">\
+				</p>\
+				<ul id="sm-possibles">\
+				</ul>\
+				<p id="sm-definition">\
+				</p>')
+	word="";
+
+
 	$("#game").toggleClass("hidden");
 	$("#score").toggleClass("hidden");
-
-	//update score
-	
-	//
-}
+})
 
 //toggle disabled on myletter input
 function isItMyTurn(){

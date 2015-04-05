@@ -94,6 +94,7 @@ io.on('connection', function(socket){
                                         round: 0,
                                         password: xxdata.password,
                                         word : '',
+                                        replay : 0,
                                         maxPlayers : xxdata.maxPlayers
                                     };
                 socket.roleId = 0;
@@ -198,15 +199,9 @@ io.on('connection', function(socket){
                                             
                                 delete rooms[socket.roomName];
                                 console.log(rooms);
-                                        
-                                //rooms.splice(rooms.indexOf(socket.roomName), 1);
-
-                            }
+                                                                    }
                         }
-            // console.log('deleting room...')
-            //             delete rooms[d_RoomName];
-            // console.log('after deletion :');
-            // console.log(rooms);
+
             socket.broadcast.emit("list", emitList());
             io.to(socket.roomName).emit("playerLeft", {nickname : socket.nickname})
         });
@@ -249,9 +244,9 @@ io.on('connection', function(socket){
         var nextWord = rooms[socket.roomName].word+data.letter;
 
          if (data.letter == false){
-            socket.emit('playerPassed', {player : socket.nickname,
+            io.to(socket.roomName).emit('playerPassed', {player : socket.nickname,
                                         letter : data.letter,
-                                        possible : getWordsStartingWith(rootNode, rooms[socket.roomName].word)} 
+                                        possible : getWordsStartingWith(getNodeFromString(rootNode, rooms[socket.roomName].word), rooms[socket.roomName].word)} 
             );
          }
          else if ( typeof data.letter == "string"){
@@ -271,12 +266,22 @@ io.on('connection', function(socket){
             } else {                                            //mauvaise lettre
                 io.to(socket.roomName).emit("wrongLetter", {letter : data.letter, 
                                                             player : socket.nickname,
-                                                            possible : getWordsStartingWith(rootNode, rooms[socket.roomName].word)}
+                                                            possible : getWordsStartingWith(getNodeFromString(rootNode, rooms[socket.roomName].word), rooms[socket.roomName].word)}
                 );
             }
          }
 
     });
+
+    socket.on("replay", function(){
+        rooms[socket.roomName].replay++;
+        if (rooms[socket.roomName].replay == rooms[socket.roomName].players.length){
+            rooms[socket.roomName].replay = 0;
+            rooms[socket.roomName].word = "";
+            io.to(socket.roomName).emit("replayAccepted");
+            io.to(socket.roomName).emit("start", startRandomer(rooms[socket.roomName]));
+        }
+    })
  
  socket.on('error', function(err){
     throw new Error(err);
@@ -444,11 +449,15 @@ function getWordsStartingWith(currentNode, currentWord)
 
 
     var words = [];
+    var limit = 5;
     var recursivelyGetWordsStartingWith = function (currentNode,currentWord)
     {
+        
         if (typeof currentNode === 'undefined') return;
 
         if (currentNode.isAWord()) words.push(currentWord);
+
+        if (words.length > limit) return;
 
         var childrenNames = currentNode.getChildrenNames();
 
@@ -459,6 +468,8 @@ function getWordsStartingWith(currentNode, currentWord)
     };
 
     recursivelyGetWordsStartingWith(currentNode,currentWord);
+    console.log(words);
+            
     return words;
 }
 
