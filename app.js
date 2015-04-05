@@ -1,3 +1,16 @@
+/*
+*   TODO : gérer la fin de partie (
+                verif dictionnaire
+                + afficahge définition
+                )
+*
+*   TODO pour gagner des poiints : 
+*       Pouvoir ajouter ses mots (stockage local 
+    storage sur la machine de celui qui a ajouté des mots)
+
+*           
+ */
+
 var http = require('http'),
     fs = require('fs'),
     express = require('express'),

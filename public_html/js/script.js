@@ -1,5 +1,9 @@
 
-
+/*
+	TODO : gérer la fin de partie (affichage d'une définition et d'un score)
+			gérer la possibilité de rejouer
+			gérer le retour au lobby (re-initialiser des variables et des champs)
+ */
 socket.emit("getList");
 
 var word = "";
@@ -43,10 +47,18 @@ $("#rc-form").submit(function(){
 
 //Event lorsqu'on joue une lettre
 $("#gc-play").submit(function(){
+			
 	socket.emit("myLetterIs", {letter : this[0].value});
 	
 	this[0].value = "";
-	
+
+	myTurn = false;
+	isItMyTurn();
+});
+
+$("#gc-pass-form").submit(function(){
+	socket.emit("myLetterIs", {letter : false});
+
 	myTurn = false;
 	isItMyTurn();
 });
@@ -58,7 +70,7 @@ $("#gc-play").submit(function(){
 //liste les rooms accessibles
 socket.on("list", function(rooms){
 
-	console.log(rooms);
+	//console.log(rooms);
 	if (rooms.length == 0) {
 		$('#rooms').html('<p> Pas de salon pour l\'isntant, n\'hésitez pas à en créer un !</p>');
 	}
@@ -111,7 +123,7 @@ socket.on("newPlayer", function(data){
 			.append(
 				'<li class="room">\
 					<div class="gp-name" data-nickname='+data.nickname+'>'+data.nickname+'</div>\
-					<div class="gp-score" data-nickname='+data.points+'>'+data.points+'</div>\
+					<div class="gp-score" data-nickname='+data.nickname+'>'+data.points+'</div>\
 				</li>');
 			
 })
@@ -147,7 +159,13 @@ socket.on("newLetter", function(data){
 				<div class="gs-letter">'+data.letter+'</div>\
 				<div class="gs-word">'+word+'</div>\
 			</li>'
-		)
+		);
+
+	updateScore(data.player);
+});
+
+socket.on("playerPassed", function(data){
+	gameEnds("pass", data);
 });
 
 socket.on("nextPlayerIs", function(data){
@@ -172,8 +190,10 @@ socket.on("start", function(arg){
 })
 
 function updateScore(player){
-	var div = $(".gp-score[data-nickname='"+player+"']")
-	div.html( parseInt(div.html())++ );
+	var div = $(".gp-score[data-nickname='"+player+"']");
+	
+	//debugger;
+	div[0].innerHTML = parseInt(div[0].innerHTML)+1
 }
 
 function gameEnds(reason, data){
@@ -183,14 +203,17 @@ function gameEnds(reason, data){
 		alert("game ends because of player passing");
 	}
 
-	$("#game").toggleClass("hidden");
-	$("#score").toggleClass("hidden");
-
 	showScore();
 }
 
 function showScore(){
+	//DOM manipulation
+	$("#game").toggleClass("hidden");
+	$("#score").toggleClass("hidden");
 
+	//update score
+	
+	//
 }
 
 //toggle disabled on myletter input
