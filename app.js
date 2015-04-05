@@ -1,30 +1,11 @@
-/*
-*   TODO : gérer la fin de partie (
-                verif dictionnaire
-                + afficahge définition
-                )
-*
-*   TODO pour gagner des poiints : 
-*       Pouvoir ajouter ses mots (stockage local 
-    storage sur la machine de celui qui a ajouté des mots)
-
-*           
- */
-
 var http = require('http'),
     fs = require('fs'),
     express = require('express'),
     debug = require('debug')('socket.io'),
     index = fs.readFileSync(__dirname + '/public_html/index.html');
- 
   
 var app = express();
 app.use(express.static(__dirname + '/public_html'));
- 
-// Import des scripts JS partagés client/serveur
-// eval(fs.readFileSync('js/toolbox.js')+'');
-// eval(fs.readFileSync('js/labyHalf.class.js')+'');
- 
  
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
@@ -33,15 +14,11 @@ var rooms = {}; // liste parties
  
 io.on('connection', function(socket){
        
-       console.log('un user sauvage s\'est connecté');
-               
+    console.log('un user sauvage s\'est connecté');
 
     var d_RoomName;
     socket.on('getList', function (data) // demande de rafraîchissement liste parties
     {
-        console.log('ROOMS :');
-        console.log(rooms);
-       
         var ret = [];
         for (var key in rooms) // on renvoie toutes les parties non pleines
         {
@@ -55,18 +32,14 @@ io.on('connection', function(socket){
        
         socket.emit('list',ret);
     });
- 
-   
+    
     socket.on('myRoleId', function (data)   { 
         socket.roleId = data; if (data==0) socket.otherRoleId = 1; else socket.otherRoleId = 0; 
     });
-
+ 
     socket.on('joinRoom', function (xxdata) {
         d_RoomName=xxdata.roomName;
-        console.log('join room name : '+ d_RoomName);
-        console.log(xxdata);
-                
-               
+    
         /*
         Si créer
             Si existe pas
@@ -144,20 +117,15 @@ io.on('connection', function(socket){
                         socket.nickname = xxdata.nickname;
                         socket.emit('joinSuccess',{myId : socket.roleId});  //tell clietn he joined successfully
                         socket.join(socket.roomName);   //join a socket.io room
-                        //emit new player to the room
-                        socket.emit("playersList", emitGameList(d_RoomName));
-
-                        console.log("broad room");
+                        socket.emit("playersList", emitGameList(d_RoomName)); //emit new player to the room
                                 
                         socket.broadcast.to(socket.roomName).emit('newPlayer', 
                             { nickname : rooms[d_RoomName].players[socket.roleId].nick,
                             points : rooms[d_RoomName].players[socket.roleId].points}
                         );
 
-                        console.log(emitGameList(d_RoomName));
                     }
-                    //console.log(io.to(d_RoomName));
-                            
+                    
                     if (rooms[d_RoomName].maxPlayers == rooms[d_RoomName].players.length){
                         io.to(d_RoomName).emit("start", startRandomer(rooms[d_RoomName]));
                     }
@@ -172,35 +140,30 @@ io.on('connection', function(socket){
 
         socket.broadcast.emit("list", emitList());
 
-
         socket.on('disconnect', function (data) { // si un joueur se déconnecte, on déconnecte l'autre joueur aussi
-            console.log(d_RoomName + ' ! on disconnect');
-            console.log(rooms[socket.roomName]);
-                    
-                    
-                        if (typeof rooms[d_RoomName] !== 'undefined')
-                        {
-                            //virer le gars du tableau
-                            for (var i = 0; i < rooms[socket.roomName].players.length; i++){
-                                console.log(rooms[socket.roomName].players[i].nick);
-                                        
-                                if ( rooms[socket.roomName].players[i].nick == socket.nickname ){
-                                                                   console.log(typeof rooms);
+            if (typeof rooms[d_RoomName] !== 'undefined')
+            {
+                // enlever le joueur du tableau
+                for (var i = 0; i < rooms[socket.roomName].players.length; i++){
+                    console.log(rooms[socket.roomName].players[i].nick);
 
-                                    rooms[socket.roomName].players.splice(i, 1);
-                                    console.log("user "+ socket.nickname +" deleted");
-                                }
-                            }
-                            if (rooms[socket.roomName].players.length <= 0){
-                                console.log('room deleted');
-                                      
-                                console.log(typeof rooms);
-                                console.log(rooms);
-                                            
-                                delete rooms[socket.roomName];
-                                console.log(rooms);
-                                                                    }
-                        }
+                    if ( rooms[socket.roomName].players[i].nick == socket.nickname ){
+                                                       console.log(typeof rooms);
+
+                        rooms[socket.roomName].players.splice(i, 1);
+                        console.log("user "+ socket.nickname +" deleted");
+                    }
+                }
+                if (rooms[socket.roomName].players.length <= 0) {
+                    console.log('room deleted');
+
+                    console.log(typeof rooms);
+                    console.log(rooms);
+
+                    delete rooms[socket.roomName];
+                    console.log(rooms);
+                }
+            }
 
             socket.broadcast.emit("list", emitList());
             io.to(socket.roomName).emit("playerLeft", {nickname : socket.nickname})
@@ -290,20 +253,20 @@ io.on('connection', function(socket){
 });
 
 function emitList(){
-            //après l'event join, on broadcast la nouvelle list des rooms     
-        var ret = [];
-        for (var key in rooms) // on renvoie toutes les parties non pleines
-        {
-            ret.push({
-                roomName: key,
-                players: rooms[key].players.length,
-                maxPlayers : rooms[key].maxPlayers,
-                protected: (rooms[key].password !== '')
-            });
-        }
-                console.log("EMIT list " + ret);  
+    //après l'event join, on broadcast la nouvelle list des rooms     
+    var ret = [];
+    for (var key in rooms) // on renvoie toutes les parties non pleines
+    {
+        ret.push({
+            roomName: key,
+            players: rooms[key].players.length,
+            maxPlayers : rooms[key].maxPlayers,
+            protected: (rooms[key].password !== '')
+        });
+    }
+            console.log("EMIT list " + ret);  
 
-        return ret;
+    return ret;
 }
 
 function emitGameList(room){
@@ -320,28 +283,26 @@ function emitGameList(room){
 }
 
 function startRandomer(room){
-                return { player : Math.floor(Math.random()*room.players.length)};
+    return { player : Math.floor(Math.random()*room.players.length)};
 }
 
 
 // DICO DICO START *************************************************************************
 
+// Les noeuds ne connaissent pas la lettre qui leur est associée, seulement les associations lettre => noeud de leurs enfants.
 var Node = function() {
-    this.children = {};
-    this.license =  'This node is licensed under The MIT License' +
-                    'For full copyright and license information, please visit http://opensource.org/licenses/MIT' +
-                    'Redistributions of files must retain the above copyright notice.';
-    this.definition = false;
+    this.children = {}; // liste des noeuds enfants sous la forme { m: noeud, y: noeud, etc. }
+    this.definition = false; // true si c'est un mot, faux sinon
 }
 
-Node.prototype.createNodeIfNotExists = function (nodeLabel) {
+Node.prototype.createNodeIfNotExists = function (nodeLabel) { // nodeLabel correspond à la lettre du noeud-enfant à créer
     if (typeof this.children[nodeLabel] === 'undefined')
         this.children[nodeLabel] = new Node();
 
-    return this.children[nodeLabel];
+    return this.children[nodeLabel]; // on renvoie le noeud enfant nouvellement créé pour faciliter le chaînage des fonctions
 }
 
-Node.prototype.addDefinition = function (def) {
+Node.prototype.addDefinition = function (def) { // permet de dire si oui ou non ce noeud constitue un mot (la définition est ensuite récupérée côté client)
     this.definition = def;
     return this;   
 }
@@ -354,22 +315,20 @@ Node.prototype.getChildren = function () {
     return this.children;
 }
 
-Node.prototype.getChildrenNames = function () {
+Node.prototype.getChildrenNames = function () { // récupère la liste des lettres enfants ['a', 'o', 'p', etc.]
     return Object.keys(this.children);
 }
 
-Node.prototype.getChild = function (name) { // PEDOBEAR
+Node.prototype.getChild = function (name) { // récupère un noeud enfant particulier à partir de la lettre de l'enfant
     return (typeof this.children[name] === 'undefined') ? false : this.children[name];
 }
 
 Node.prototype.isAWord = function () {
-    // return (typeof this.definition == 'string');
     return (this.definition); // definition est à true si c'est un mot
 }
 
-// Extraction agnostique
-
-function recursivelyPrintNodes(currentNode, currentWord)
+// Fonction de déboggage permettant d'afficher la liste des mots de manière récursive, dans l'ordre alphabétique
+function recursivelyPrintNodes(currentNode, currentWord) // currentWord correspond au mot formé à l'appel de cette fonction
 {
     if (typeof currentNode === 'undefined') return;
     if (currentNode.isAWord()) console.log(currentWord + ' : ' +currentNode.getDefinition());
@@ -389,13 +348,14 @@ function recursivelyPrintNodes(currentNode, currentWord)
 //   si (malaises est un mot) ==> if isAWord(...)
 //     le joueur gagne
 //   sinon
-//     le joueur a fait de la merde et donc perd
+//     le joueur a voulu écrire un mot/préfixe inexistant et donc perd
 
-
-// POUR TEST (au on close)
+// Exemples pour test :
 // console.log(wordExistsStartingWith(rootNode,'malaise'));
 // console.log(wordExistsStartingWith(rootNode,'malaises'));
+
 // Renvoie vrai si un mot peut être formé à partir d'une chaîne de caractères, hormis ce mot lui-même. À appeler à chaque tour.
+// @param currentNode le noeud à partir duquel effectuer la recherche (utiliser rootNode pour le tout premier noeud)
 function wordExistsStartingWith(currentNode,pre) // ATTENTION : si on appelle la fonction sur malaises ça va renvoyer false. (aucun mot qui commence par malaises)
 {
     for (var i=0; i<pre.length;i++)
@@ -404,18 +364,13 @@ function wordExistsStartingWith(currentNode,pre) // ATTENTION : si on appelle la
         if (currentNode === false)
             return false; // noeud enfant n'a pas été trouvé
     }
-    if (currentNode.getChildrenNames().length>0) return true;
+    if (currentNode.getChildrenNames().length>0) return true; // si la dernière lettre a des enfants, c'est-à-dire qu'il est possible de former un autre mot à partir de ce préfixe (par exemple "malaises" à partir de "malaise")
     return false;
 }
 
+// Permet de savoir si un mot existe à partir d'un noeud de base
 function wordExists(currentNode,word)
 {
-    console.log("word exists ?");
-    //console.log(currentNode);
-    console.log(word);
-            
-            
-            
     for (var i=0; i<word.length;i++)
     {
         currentNode = currentNode.getChild(word.charAt(i));
@@ -425,11 +380,7 @@ function wordExists(currentNode,word)
     return true;
 }
 
-function getDefinition(word) // get definition en local?
-{
-
-}
-
+// Permet de récupérer le noeud associé à une chaîne de caractères (par exemple le noeud "s" à partir du texte "malaises")
 function getNodeFromString(currentNode,stringx)
 {
     for (var i=0; i<stringx.length;i++)
@@ -441,23 +392,23 @@ function getNodeFromString(currentNode,stringx)
     return currentNode;
 }
 
-// pour pas de dépendance : getWordsStartingWith(noeud du mot, mot);
+// pour que la fonction n'ait pas de dépendance externe (ne fasse pas appel à une variable extérieure à cette fonction même ou à ses arguments) ==> injection de dépendances : getWordsStartingWith(noeud du mot, mot);
+// on rappelle qu'un noeud ne connaît pas la lettre qui lui est associée, et a de visible que ses noeuds enfants et les lettres associées à ses enfants
 // par exemple : getWordsStartingWith(getNodeFromString(rootNode,'mala'),'mala');
 function getWordsStartingWith(currentNode, currentWord)
 {
     if (currentNode === false) return [];
 
-
     var words = [];
     var limit = 5;
-    var recursivelyGetWordsStartingWith = function (currentNode,currentWord)
+    var recursivelyGetWordsStartingWith = function (currentNode,currentWord) // cette fonction a accès à la variable externe words qu'elle va remplir au fur et à mesure
     {
         
         if (typeof currentNode === 'undefined') return;
 
         if (currentNode.isAWord()) words.push(currentWord);
 
-        if (words.length > limit) return;
+        if (words.length > limit) return; // pour ne pas renvoyer trop de mots
 
         var childrenNames = currentNode.getChildrenNames();
 
@@ -466,15 +417,13 @@ function getWordsStartingWith(currentNode, currentWord)
             recursivelyGetWordsStartingWith(currentNode.getChild(childrenNames[childrenNameIndex]),currentWord+childrenNames[childrenNameIndex]);
         }
     };
-
-    recursivelyGetWordsStartingWith(currentNode,currentWord);
-    console.log(words);
-            
-    return words;
+    recursivelyGetWordsStartingWith(currentNode,currentWord); // premier appel à la fonction récursive
+    
+    return words; // on renvoie la liste des mots commençant par la chaîne de caractères
 }
 
-// toujours appeler via rootNode
-function NOPEgetWordsStartingWith(currentNode, startingWith) // ça récupère les noeuds, mais je vois pas de méthode pour récupérer les mots formés (chaque noeud connaît juste les lettres enfants, même pas sa lettre)
+// (inutilisé) Méthode permettant de récupérer les noeuds, mais l'on ne peut pas connaître les lettres associées
+function getNodesOfWordsStartingWith(currentNode, startingWith)
 {
     if (typeof currentNode === 'undefined') return;
 
@@ -499,14 +448,10 @@ function NOPEgetWordsStartingWith(currentNode, startingWith) // ça récupère l
     return words;
 }
 
-
-// Instanciation du co-pilote
-
+// Premier noeud de l'arbre
 var rootNode = new Node();
 
-// Hydratation
-
-var readline = require('readline');
+var readline = require('readline'); // permet de parser le fichier de dictionnaire ligne par ligne pour construire l'arbre au fur et à mesure
 
 var rd = readline.createInterface({
     input: fs.createReadStream('dico.txt'),
@@ -516,18 +461,18 @@ var rd = readline.createInterface({
 
 var parentNodes = [{node: rootNode, letter: '!'}];
 
+// Cette technique permet de toujours avoir un accès facile au dernier noeud commun avec le mot précédent
 rd.on('line', function(word) {
 
-    // ROOT + abbaye (parentnodes) à abbayes
-    // ROOT + abbaye (parentnodes) à acupuncture? devient ROOT + a (parentnodes)
-    for (var i=1; i<parentNodes.length; i++)
+    // de ROOT + abbaye (parentnodes) à abbayes
+    // de ROOT + abbaye (parentnodes) à acupuncture? ==> devient ROOT + a (parentnodes)
+    for (var i=1; i<parentNodes.length; i++) // on supprime les noeuds dont les lettres ne sont pas en commun entre le dernier mot parcouru et le nouveau
     {   
         if (parentNodes[i].letter !== word.charAt(i-1)) { parentNodes=parentNodes.slice(0,i); break; }
     }
 
-    for (var letterIndex=parentNodes.length-1; letterIndex<word.length; letterIndex++)
+    for (var letterIndex=parentNodes.length-1; letterIndex<word.length; letterIndex++) // on ajoute les noeuds des nouvelles lettres dans le tableau
     {
-
         parentNodes.push({node: parentNodes[parentNodes.length-1].node.createNodeIfNotExists(word.charAt(letterIndex)), letter: word.charAt(letterIndex)}); // on ajoute par exemple le "o" de "abo" dans parentNodes (qui contenait [ROOT] a b avant)   
     }
 
@@ -535,10 +480,8 @@ rd.on('line', function(word) {
 });
 
 rd.on("close", function() { // et le reste du script...
-    // recursivelyPrintNodes(rootNode, ''); <-- ne fais pas ça sur un gros dico
-    // si on veut faire plus propre on peut attacher ces fonctions à la classe Node (::) (pas à l'objet !!)
-    
-    console.log(getWordsStartingWith(getNodeFromString(rootNode,'anticonstitutionnel'),'anticonstitutionnel'));
+    // recursivelyPrintNodes(rootNode, ''); <-- ne pas faire sur un gros dictionnaire
+    // console.log(getWordsStartingWith(getNodeFromString(rootNode,'anticonstitutionnel'),'anticonstitutionnel'));
 });
     
 
