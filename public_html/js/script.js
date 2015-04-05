@@ -164,6 +164,11 @@ socket.on("newLetter", function(data){
 	updateScore(data.player);
 });
 
+socket.on("completeWord", function(data){
+	console.log(data);		
+});
+
+
 socket.on("playerPassed", function(data){
 	gameEnds("pass", data);
 });
@@ -195,15 +200,45 @@ function updateScore(player){
 	//debugger;
 	div[0].innerHTML = parseInt(div[0].innerHTML)+1
 }
-
+/*
+*   data.player
+* 		.letter
+* 		.word
+* 		.possible
+ */
 function gameEnds(reason, data){
+	var player = data.player;
+	var result = "";
+	var message = "";
+
 	if (reason == "letter" ){
-		alert("game ends because of additional "+ data)
+		result = " perdu ";
+		message = " à cause d'une lettre en trop.";
+
+		var possible = " possible ";
+		$("#sm-possibles").html(possible);
 	} else if (reason == "pass"){
-		alert("game ends because of player passing");
+		result = " perdu ";
+		message = " car il a passé.";
+
+		var possible = " possible ";
+		$("#sm-possibles").html(possible);	
+	} else if (reason == "complete") {
+		result = " gagné ";
+		message = " car il a écrit le mot le plus long !";
+
+		$('#sm-definition').load('http://www.larousse.fr/dictionnaires/francais/'+data.word+' ul.Definitions');
 	}
 
-	showScore();
+
+	$('#sm-player').html(player);
+	$("#sm-result").html(result);
+	$('#sm-message').html(message);
+
+	//DOM manipulation
+	$("#game").toggleClass("hidden");
+	$("#score").toggleClass("hidden");
+
 }
 
 function showScore(){

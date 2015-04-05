@@ -93,6 +93,7 @@ io.on('connection', function(socket){
                                                 }],
                                         round: 0,
                                         password: xxdata.password,
+                                        word : '',
                                         maxPlayers : xxdata.maxPlayers
                                     };
                 socket.roleId = 0;
@@ -214,7 +215,7 @@ io.on('connection', function(socket){
  
     socket.on('myLetterIs', function (data) { 
         /*
-            If data == false    le jouer passe
+            If data == false    le joueur passe
                 fin de partie
             If data == string
                 est-ce que la lettre, une fois ajoutée au mot précédent fait un mot ?
@@ -223,20 +224,26 @@ io.on('connection', function(socket){
                 Non :
                     .emit("wrongLetter", {lettre, player})
          */
+        
+        console.log("[EVT] my letter is " + data.letter);
+        var nextWord = rooms[socket.roomName].word+data.letter;
 
          if (data.letter == false){
             socket.emit('playerPassed', {nickname : socket.nickname} );
          }
          else if ( typeof data.letter == "string"){
-            //if ( letterEndsGame(data.letter) ){
-            if (false) {
-                io.to(socket.roomName).emit("wrongLetter", {letter : data.letter});
-            }
-            else {
+            if ( wordExistsStartingWith(rootNode, nextWord) ) {
+                rooms[socket.roomName].word += data.letter;
                 io.to(socket.roomName).emit("newLetter", {letter : data.letter, player : socket.nickname});
+
                 //next player = (current + 1) % nombre de joueurs;
                 var nextPlayer = (socket.roleId + 1) % rooms[socket.roomName].players.length;
-                io.to(socket.roomName).emit("nextPlayerIs", { next : nextPlayer });
+                io.to(socket.roomName).emit("nextPlayerIs", { next : nextPlayer });   
+            } 
+            else if ( wordExists(rootNode,nextWord) ){
+                io.to(socket.roomName).emit("completeWord", {word : nextWord, player : socket.nickname})
+            } else {
+                io.to(socket.roomName).emit("wrongLetter", {letter : data.letter, player : socket.nickname});
             }
          }
 
@@ -247,14 +254,6 @@ io.on('connection', function(socket){
  });
                
 });
-
-//vérifie si après (le mot actuel + la lettre entrée) le dictionnaire continue
-function letterEndsGame(letter){
-    //check
-
-
-    //return true / false
-}
 
 function emitList(){
             //après l'event join, on broadcast la nouvelle list des rooms     
@@ -290,8 +289,220 @@ function startRandomer(room){
                 return { player : Math.floor(Math.random()*room.players.length)};
 }
 
-var Dictionnaire = {
+
+// DICO DICO START *************************************************************************
+
+var Node = function() {
+    this.children = {};
+    this.license =  'This node is licensed under The MIT License' +
+                    'For full copyright and license information, please visit http://opensource.org/licenses/MIT' +
+                    'Redistributions of files must retain the above copyright notice.';
+    this.definition = false;
 }
+
+Node.prototype.createNodeIfNotExists = function (nodeLabel) {
+    if (typeof this.children[nodeLabel] === 'undefined')
+        this.children[nodeLabel] = new Node();
+
+    return this.children[nodeLabel];
+}
+
+Node.prototype.addDefinition = function (def) {
+    this.definition = def;
+    return this;   
+}
+
+Node.prototype.getDefinition = function () {
+    return this.definition;
+}
+
+Node.prototype.getChildren = function () {
+    return this.children;
+}
+
+Node.prototype.getChildrenNames = function () {
+    return Object.keys(this.children);
+}
+
+Node.prototype.getChild = function (name) { // PEDOBEAR
+    return (typeof this.children[name] === 'undefined') ? false : this.children[name];
+}
+
+Node.prototype.isAWord = function () {
+    // return (typeof this.definition == 'string');
+    return (this.definition); // definition est à true si c'est un mot
+}
+
+// Extraction agnostique
+
+function recursivelyPrintNodes(currentNode, currentWord)
+{
+    if (typeof currentNode === 'undefined') return;
+    if (currentNode.isAWord()) console.log(currentWord + ' : ' +currentNode.getDefinition());
+    else console.log(currentWord);
+
+    var childrenNames = currentNode.getChildrenNames();
+
+    for (var childrenNameIndex = 0; childrenNameIndex < childrenNames.length; childrenNameIndex++)
+    { recursivelyPrintNodes(currentNode.getChild(childrenNames[childrenNameIndex]),currentWord+childrenNames[childrenNameIndex]);
+    }
+}
+
+// le joueur entre la dernière lettre de "malaises"
+// if (wordExistsStartingWith malaises)
+//   la partie continue
+// sinon (si aucun mot de peut être forém par malaises+)
+//   si (malaises est un mot) ==> if isAWord(...)
+//     le joueur gagne
+//   sinon
+//     le joueur a fait de la merde et donc perd
+
+
+// POUR TEST (au on close)
+// console.log(wordExistsStartingWith(rootNode,'malaise'));
+// console.log(wordExistsStartingWith(rootNode,'malaises'));
+// Renvoie vrai si un mot peut être formé à partir d'une chaîne de caractères, hormis ce mot lui-même. À appeler à chaque tour.
+function wordExistsStartingWith(currentNode,pre) // ATTENTION : si on appelle la fonction sur malaises ça va renvoyer false. (aucun mot qui commence par malaises)
+{
+    for (var i=0; i<pre.length;i++)
+    {
+        currentNode = currentNode.getChild(pre.charAt(i));
+        if (currentNode === false)
+            return false; // noeud enfant n'a pas été trouvé
+    }
+    if (currentNode.getChildrenNames().length>0) return true;
+    return false;
+}
+
+function wordExists(currentNode,word)
+{
+    console.log("word exists ?");
+    //console.log(currentNode);
+    console.log(word);
+            
+            
+            
+    for (var i=0; i<word.length;i++)
+    {
+        currentNode = currentNode.getChild(word.charAt(i));
+        if (currentNode === false)
+            return false; // noeud enfant n'a pas été trouvé
+    }
+    return true;
+}
+
+function getDefinition(word) // get definition en local?
+{
+
+}
+
+function getNodeFromString(currentNode,stringx)
+{
+    for (var i=0; i<stringx.length;i++)
+    {
+        currentNode = currentNode.getChild(stringx.charAt(i));
+        if (currentNode === false)
+            return false; // noeud enfant n'a pas été trouvé
+    }
+    return currentNode;
+}
+
+// pour pas de dépendance : getWordsStartingWith(noeud du mot, mot);
+// par exemple : getWordsStartingWith(getNodeFromString(rootNode,'mala'),'mala');
+function getWordsStartingWith(currentNode, currentWord)
+{
+    if (currentNode === false) return [];
+
+
+    var words = [];
+    var recursivelyGetWordsStartingWith = function (currentNode,currentWord)
+    {
+        if (typeof currentNode === 'undefined') return;
+
+        if (currentNode.isAWord()) words.push(currentWord);
+
+        var childrenNames = currentNode.getChildrenNames();
+
+        for (var childrenNameIndex = 0; childrenNameIndex < childrenNames.length; childrenNameIndex++)
+        {
+            recursivelyGetWordsStartingWith(currentNode.getChild(childrenNames[childrenNameIndex]),currentWord+childrenNames[childrenNameIndex]);
+        }
+    };
+
+    recursivelyGetWordsStartingWith(currentNode,currentWord);
+    return words;
+}
+
+// toujours appeler via rootNode
+function NOPEgetWordsStartingWith(currentNode, startingWith) // ça récupère les noeuds, mais je vois pas de méthode pour récupérer les mots formés (chaque noeud connaît juste les lettres enfants, même pas sa lettre)
+{
+    if (typeof currentNode === 'undefined') return;
+
+    var startingWithNode = getNodeFromString(currentNode,startingWith);
+    if (startingWithNode === false) return []; // ou return false : aucun mot qui ne commence par ce mot
+
+    var words = [];
+    var backlog = [currentNode];
+    do {
+        currentNode = backlog.shift(); // file
+        if (currentNode.isAWord()) words.push(currentNode);
+
+        var childrenNames = currentNode.getChildrenNames();
+        for (var childrenNameIndex = 0; childrenNameIndex < childrenNames.length; childrenNameIndex++)
+        {
+            backlog.push(currentNode.getChild(childrenNames[childrenNameIndex]));
+        }
+
+
+    } while (backlog.length>0);
+
+    return words;
+}
+
+
+// Instanciation du co-pilote
+
+var rootNode = new Node();
+
+// Hydratation
+
+var readline = require('readline');
+
+var rd = readline.createInterface({
+    input: fs.createReadStream('dico.txt'),
+    output: process.stdout,
+    terminal: false
+});
+
+var parentNodes = [{node: rootNode, letter: '!'}];
+
+rd.on('line', function(word) {
+
+    // ROOT + abbaye (parentnodes) à abbayes
+    // ROOT + abbaye (parentnodes) à acupuncture? devient ROOT + a (parentnodes)
+    for (var i=1; i<parentNodes.length; i++)
+    {   
+        if (parentNodes[i].letter !== word.charAt(i-1)) { parentNodes=parentNodes.slice(0,i); break; }
+    }
+
+    for (var letterIndex=parentNodes.length-1; letterIndex<word.length; letterIndex++)
+    {
+
+        parentNodes.push({node: parentNodes[parentNodes.length-1].node.createNodeIfNotExists(word.charAt(letterIndex)), letter: word.charAt(letterIndex)}); // on ajoute par exemple le "o" de "abo" dans parentNodes (qui contenait [ROOT] a b avant)   
+    }
+
+    parentNodes[parentNodes.length-1].node.addDefinition(true);
+});
+
+rd.on("close", function() { // et le reste du script...
+    // recursivelyPrintNodes(rootNode, ''); <-- ne fais pas ça sur un gros dico
+    // si on veut faire plus propre on peut attacher ces fonctions à la classe Node (::) (pas à l'objet !!)
+    
+    console.log(getWordsStartingWith(getNodeFromString(rootNode,'anticonstitutionnel'),'anticonstitutionnel'));
+});
+    
+
+// DICO DICO END ***************************************************************************
  
 server.listen(8080);
  
