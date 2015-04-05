@@ -1,6 +1,7 @@
 var http = require('http'),
     fs = require('fs'),
     express = require('express'),
+    debug = require('debug')('socket.io'),
     index = fs.readFileSync(__dirname + '/public_html/index.html');
  
   
@@ -85,7 +86,7 @@ io.on('connection', function(socket){
                 socket.nickname = xxdata.nickname;
                 socket.otherRoleId = 1;
                 socket.roomName = d_RoomName;
-                socket.emit('joinSuccess',0);
+                socket.emit('joinSuccess',{myId : socket.roleId});
                 socket.emit('newPlayer', {
                     nickname : socket.nickname,
                     points : 0
@@ -126,19 +127,24 @@ io.on('connection', function(socket){
                         socket.roleId = rooms[d_RoomName].players.length-1; //donne son ID au joueur
                         socket.roomName = d_RoomName;
                         socket.nickname = xxdata.nickname;
-                        socket.emit('joinSuccess',1);  //tell clietn he joined successfully
+                        socket.emit('joinSuccess',{myId : socket.roleId});  //tell clietn he joined successfully
                         socket.join(socket.roomName);   //join a socket.io room
                         //emit new player to the room
                         socket.emit("playersList", emitGameList(d_RoomName));
 
                         console.log("broad room");
                                 
-                        io.to(socket.roomName).emit('newPlayer', 
+                        socket.broadcast.to(socket.roomName).emit('newPlayer', 
                             { nickname : rooms[d_RoomName].players[socket.roleId].nick,
                             points : rooms[d_RoomName].players[socket.roleId].points}
                         );
 
                         console.log(emitGameList(d_RoomName));
+                    }
+                    //console.log(io.to(d_RoomName));
+                            
+                    if (rooms[d_RoomName].maxPlayers == rooms[d_RoomName].players.length){
+                        io.to(d_RoomName).emit("start", startRandomer(rooms[d_RoomName]));
                     }
                 }
             }
@@ -206,17 +212,18 @@ io.on('connection', function(socket){
          */
 
          if (data.letter == false){
-            socket.emit('playerPassed', {nickname : socket.nick} );
+            socket.emit('playerPassed', {nickname : socket.nickname} );
          }
          else if ( typeof data.letter == "string"){
-            if ( letterEndsGame(data.letter) ){
-                io.to(socket.roomname).emit("wrongLetter", {letter : data.letter});
+            //if ( letterEndsGame(data.letter) ){
+            if (false) {
+                io.to(socket.roomName).emit("wrongLetter", {letter : data.letter});
             }
             else {
-                io.to(socket.roomname).emit("newLetter", {letter : data.letter, player : socket.nickname});
+                io.to(socket.roomName).emit("newLetter", {letter : data.letter, player : socket.nickname});
                 //next player = (current + 1) % nombre de joueurs;
-                var nextPlayer = (socket.roleId + 1) % rooms[socket.roomname].players.length;
-                io.to(socket.roomname).emit("nextPlayerIs", { next : nextPlayer });
+                var nextPlayer = (socket.roleId + 1) % rooms[socket.roomName].players.length;
+                io.to(socket.roomName).emit("nextPlayerIs", { next : nextPlayer });
             }
          }
 
@@ -264,6 +271,10 @@ function emitGameList(room){
     }
 
     return res;
+}
+
+function startRandomer(room){
+                return { player : Math.floor(Math.random()*room.players.length)};
 }
 
 var Dictionnaire = {

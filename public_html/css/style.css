@@ -3,4 +3,19 @@ body{ width: 100%; height: auto; background-color: #F6F6F6; font-size: 16px; }
 form * { display: block; margin: 5px;}
 form input { height: 1.5em; }
 
+li.room div {
+  display: inline-block;
+}
+
+li.g-stroke div {
+  display: inline-block;
+  font-size: 1.3em;
+  line-height: 1.7em;
+}
+
+li.g-stroke div:nth-child(1) {
+  font-weight: 900;
+  width: 200px;
+  overflow: hidden;
+}
 .hidden {display: none;}

@@ -1,7 +1,10 @@
 
 
 socket.emit("getList");
+
 var word = "";
+var myTurn = false;
+var myId = null;
 
 $("#nickname-form").submit(function(){
 	if (this[0].value <= 0){
@@ -41,6 +44,11 @@ $("#rc-form").submit(function(){
 //Event lorsqu'on joue une lettre
 $("#gc-play").submit(function(){
 	socket.emit("myLetterIs", {letter : this[0].value});
+	
+	this[0].value = "";
+	
+	myTurn = false;
+	isItMyTurn();
 });
 
 
@@ -84,6 +92,8 @@ socket.on("joinError", function(error){
 
 socket.on("joinSuccess", function(arg){
 	console.log("join success");	
+	myId = arg.myId;
+
 	$("#rooms-listing").toggleClass("hidden");
 	$("#game").toggleClass("hidden");
 });
@@ -108,13 +118,15 @@ socket.on("newPlayer", function(data){
 
 //update la liste des joueurs
 socket.on("playersList", function(list){
+	console.log("player list");
+			
 	$('#game-player').html('');
 	for (var i = 0; i < list.length; i++){
-		$("#game-player")
+		$("#game-players")
 			.append(
 				'<li class="room">\
 					<div class="gp-name" data-nickname='+list[i].nickname+'>'+list[i].nickname+'</div>\
-					<div class="gp-score" data-nickname='+list[i].nickname+'>'+list[i].score+'</div>\
+					<div class="gp-score" data-nickname='+list[i].nickname+'>'+list[i].points+'</div>\
 				</li>');
 	}
 });
@@ -138,6 +150,27 @@ socket.on("newLetter", function(data){
 		)
 });
 
+socket.on("nextPlayerIs", function(data){
+	if (data.next == myId){
+		myTurn = true;
+		isItMyTurn();
+	}
+});
+
+
+
+socket.on("start", function(arg){
+	if (arg.player == myId){
+		console.log("mon tour");
+		console.log("arg : " + arg.player +" id "+ myId);
+				
+		myTurn = true;
+		isItMyTurn();
+
+		alert("C'est à votre tour !");
+	}
+})
+
 function updateScore(player){
 	var div = $(".gp-score[data-nickname='"+player+"']")
 	div.html( parseInt(div.html())++ );
@@ -160,6 +193,16 @@ function showScore(){
 
 }
 
+//toggle disabled on myletter input
+function isItMyTurn(){
+	if (myTurn && $("#gc-letter").attr("disabled") == "disabled" ){
+		$("#gc-letter").attr("disabled", false);
+		return true;
+	}	else if (!myTurn && !$("#gc-letter").attr("disabled") != "disabled") {
+		$("#gc-letter").attr("disabled", true);
+		return false;
+	}
+}
 
 
 /*
