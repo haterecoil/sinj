@@ -1,15 +1,12 @@
-
-/*
-	TODO : gérer la fin de partie (affichage d'une définition et d'un score)
-			gérer la possibilité de rejouer
-			gérer le retour au lobby (re-initialiser des variables et des champs)
- */
+//récupérer la liste des parties en cours
 socket.emit("getList");
 
+//2 variables globales pour gérer le mot en cours, et savori si c'est notre tour de jouer
 var word = "";
 var myTurn = false;
 var myId = null;
 
+//handle : première view, formulaire de pseudo
 $("#nickname-form").submit(function(){
 	if (this[0].value <= 0){
 		$("#pseudo-error").html("erreur de pseudo");
@@ -21,6 +18,8 @@ $("#nickname-form").submit(function(){
 })
 
 //Event pour la création d'une room
+//	vérification du formulaire
+//	envoi au serveur
 $("#rc-form").submit(function(){
 
 	if (this[0].value <= 0) {
@@ -42,10 +41,9 @@ $("#rc-form").submit(function(){
 	socket.emit('joinRoom', res)
 });
 
-//Event lorsque l'on rejoint une room
-
 
 //Event lorsqu'on joue une lettre
+//récupère la lettre, envoie au serveur et déclare que l'on a joué
 $("#gc-play").submit(function(){
 			
 	socket.emit("myLetterIs", {letter : this[0].value});
@@ -56,6 +54,7 @@ $("#gc-play").submit(function(){
 	isItMyTurn();
 });
 
+//déclarer que l'on passe, envoie "false" au lieu d'une lettre
 $("#gc-pass-form").submit(function(){
 	socket.emit("myLetterIs", {letter : false});
 
@@ -65,9 +64,11 @@ $("#gc-pass-form").submit(function(){
 
 
 
-
-
 //liste les rooms accessibles
+//
+//récupère un tableau du serveur, 
+//	le formate
+//	ajoute l'event listener "join"
 socket.on("list", function(rooms){
 
 	//console.log(rooms);
@@ -113,8 +114,14 @@ socket.on("joinSuccess", function(arg){
 
 /*
  * GAME SOCKET LISTENER
+ * newPlayer : 		quand un joueur rejoint une partie en attente
+ * playersList : 	récupérer la liste des joueurs d'une partie
+ * newLetter : 		une lettre vient d'être jouée
+ * nextPlayerIs : 	savoir si c'est à nous de jouer
+ * start : 			commencer une partie
 */
 
+//reçoit un objet avec le score et le pseudo
 socket.on("newPlayer", function(data){
 	console.log("new player");
 		console.log(data);
@@ -129,6 +136,7 @@ socket.on("newPlayer", function(data){
 })
 
 //update la liste des joueurs
+//reçoit un tableau avec les pseudo et scores
 socket.on("playersList", function(list){
 	console.log("player list");
 			
@@ -145,6 +153,7 @@ socket.on("playersList", function(list){
 
 
 //update le game-board
+//reçoit un objet avec la lettre en str
 socket.on("newLetter", function(data){
 	word += data.letter;
 	$("#gb-word").html(word);
@@ -161,7 +170,7 @@ socket.on("newLetter", function(data){
 	updateScore(data.player);
 });
 
-
+//reçoit un objet avec data.next un entier
 socket.on("nextPlayerIs", function(data){
 	if (data.next == myId){
 		myTurn = true;
@@ -170,7 +179,7 @@ socket.on("nextPlayerIs", function(data){
 });
 
 
-
+//reçoit un objet vec le pseudo du joueur qui commence
 socket.on("start", function(arg){
 	if (arg.player == myId){
 		console.log("mon tour");
@@ -183,6 +192,7 @@ socket.on("start", function(arg){
 	}
 })
 
+//met à jour le DOM
 function updateScore(player){
 	var div = $(".gp-score[data-nickname='"+player+"']");
 	
@@ -205,11 +215,15 @@ socket.on("wrongLetter", function(data){
 });
 
 /*
-*   data.player
-* 		.letter
-* 		.word
-* 		.possible
+*   data.player    str
+* 		.letter    str
+* 		.word      str
+* 		.possible  obj
+
+	Appelé lors de fin de jeu avec reason : la raison de fin de partie
+							et data : les données liées
  */
+
 function gameEnds(reason, data){
 	var player = data.player;
 	var result = "";
@@ -257,10 +271,10 @@ $("#score-form").submit(function(){
 	socket.emit("replay");
 });
 
-// //retourner au lobby
-// $("#sf-lobby").submit(function(){
 
-// });
+// si le replay est accepté par tous
+// réinitilise le dom correspondant
+// relance un début de partie
 
 socket.on("replayAccepted", function(){
 	$("#sf-replay").html("Rejouer");
@@ -283,7 +297,7 @@ socket.on("replayAccepted", function(){
 	$("#score").toggleClass("hidden");
 })
 
-//toggle disabled on myletter input
+//toggle disabled sur l'input myLetter
 function isItMyTurn(){
 	if (myTurn && $("#gc-letter").attr("disabled") == "disabled" ){
 		$("#gc-letter").attr("disabled", false);
@@ -293,25 +307,3 @@ function isItMyTurn(){
 		return false;
 	}
 }
-
-
-/*
-	Accueil
-	Création de la liste des parties
-		Requête
-		Affichage
-
-	Rejoindre une partie
-		Requête
-		Affichage
-
-	Créer une partie
-		Vérification
-		Requête
-
- */
-
-//connect au socket
-
-//Liste des parties.
-
