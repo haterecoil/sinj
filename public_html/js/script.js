@@ -12,6 +12,7 @@ $("#nickname-form").submit(function(){
 		$("#pseudo-error").html("erreur de pseudo");
 	}
 	else {
+		$("#pseudo-error").html("");
 		$(this).toggleClass("hidden");
 		$("#rooms-listing").toggleClass("hidden");
 	}
@@ -23,10 +24,10 @@ $("#nickname-form").submit(function(){
 $("#rc-form").submit(function(){
 
 	if (this[0].value <= 0) {
-		$("#rc-errors").html("Pas de roomname");
+		$("#rc-errors").html("Pas de nom ?");
 		return false;
 	} else if (this[2].value <= 0){
-		$("#rc-errors").html("Pas de max player");
+		$("#rc-errors").html("Pas de max player !");
 		return false;
 	}
 
@@ -73,7 +74,7 @@ socket.on("list", function(rooms){
 
 	//console.log(rooms);
 	if (rooms.length == 0) {
-		$('#rooms').html('<p> Pas de salon pour l\'instant, n\'hésitez pas à en créer un !</p>');
+		$('#rooms').html('<p> Pas de salon de jeu pour l\'instant, n\'hésitez pas à en créer un !</p>');
 	}
 	else {
 		$('#rooms').html('');
@@ -129,8 +130,8 @@ socket.on("newPlayer", function(data){
 		$("#game-players")
 			.append(
 				'<li class="room">\
-					<div class="gp-name" data-nickname='+data.nickname+'>'+data.nickname+'</div>\
-					<div class="gp-score" data-nickname='+data.nickname+'>'+data.points+'</div>\
+					<h4 class="gp-name" data-roleid='+data.roleId+'>'+data.nickname+' : \
+					<span class="gp-score sub" data-roleid='+data.roleId+'>'+data.points+'</h4>\
 				</li>');
 			
 })
@@ -139,14 +140,16 @@ socket.on("newPlayer", function(data){
 //reçoit un tableau avec les pseudo et scores
 socket.on("playersList", function(list){
 	console.log("player list");
+	console.log(list);
 			
-	$('#game-player').html('');
+			
+	$('#game-players').html('');
 	for (var i = 0; i < list.length; i++){
 		$("#game-players")
 			.append(
 				'<li class="room">\
-					<div class="gp-name" data-nickname='+list[i].nickname+'>'+list[i].nickname+'</div>\
-					<div class="gp-score" data-nickname='+list[i].nickname+'>'+list[i].points+'</div>\
+					<h4 class="gp-name" data-roleid='+list[i].roleId+'>'+list[i].nickname+' : \
+					<span class="gp-score sub" data-roleid='+list[i].roleId+'>'+list[i].points+'</h4>\
 				</li>');
 	}
 });
@@ -167,7 +170,7 @@ socket.on("newLetter", function(data){
 		);
 				// <div class="gs-word">'+word+'</div>\
 
-	updateScore(data.player);
+	updateScore(data.playerRoleId);
 });
 
 //reçoit un objet avec data.next un entier
@@ -184,18 +187,22 @@ socket.on("start", function(arg){
 	if (arg.player == myId){
 		console.log("mon tour");
 		console.log("arg : " + arg.player +" id "+ myId);
-				
+
 		myTurn = true;
 		isItMyTurn();
 
 		alert("C'est à votre tour !");
 	}
+
+	if ( !$(".pending-game").hasClass("hidden") ){
+		$(".pending-game").toggleClass("hidden")
+	}
 })
 
 //met à jour le DOM
 function updateScore(player){
-	var div = $(".gp-score[data-nickname='"+player+"']");
-	
+
+	var div = $(".gp-score[data-roleid='"+player+"']");
 	//debugger;
 	div[0].innerHTML = parseInt(div[0].innerHTML)+1
 }
@@ -228,9 +235,11 @@ function gameEnds(reason, data){
 	var player = data.player;
 	var result = "";
 	var message = "";
+	var colors = ["rgb(227, 0, 0)", "rgb(0, 227, 0)"];
 
 	if (reason == "letter" ){
 		result = " perdu ";
+		$("#sm-result").css("color", colors[0]);
 		message = " à cause d'une lettre en trop.";
 
 		var possible = data.possible;
@@ -240,6 +249,7 @@ function gameEnds(reason, data){
 		}	
 	} else if (reason == "pass"){
 		result = " perdu ";
+		$("#sm-result").css("color", colors[0]);
 		message = " car il a passé.";
 
 		var possible = data.possible;
@@ -249,8 +259,10 @@ function gameEnds(reason, data){
 		}
 	} else if (reason == "complete") {
 		result = " gagné ";
+		$("#sm-result").css("color", colors[1]);
+		
 		message = " car il a écrit le mot le plus long !";
-		$('#sm-definition').prepend("<p> Définition de "+data.word+".</p>")
+		$('#sm-definition').prepend("<p> Définition de "+data.word+".</p>");
 		$('#sm-definition').load('http://www.larousse.fr/dictionnaires/francais/'+data.word+' ul.Definitions');
 	}
 

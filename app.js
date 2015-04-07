@@ -62,6 +62,7 @@ io.on('connection', function(socket){
                                         players:  [
                                                 { nick: xxdata.nickname, 
                                                     socket: socket, 
+                                                    roleId : 0,
                                                     points: 0
                                                 }],
                                         round: 0,
@@ -72,11 +73,11 @@ io.on('connection', function(socket){
                                     };
                 socket.roleId = 0;
                 socket.nickname = xxdata.nickname;
-                socket.otherRoleId = 1;
                 socket.roomName = d_RoomName;
                 socket.emit('joinSuccess',{myId : socket.roleId});
                 socket.emit('newPlayer', {
                     nickname : socket.nickname,
+                    roleId : socket.roleId,
                     points : 0
                 })
                 socket.join(socket.roomName);
@@ -108,11 +109,13 @@ io.on('connection', function(socket){
                     {
                         rooms[d_RoomName].players.push(
                                                 { nick: xxdata.nickname, 
+                                                    roleId: 0,
                                                     socket: socket, 
                                                     points: 0
                                                 });
 
                         socket.roleId = rooms[d_RoomName].players.length-1; //donne son ID au joueur
+                        rooms[d_RoomName].players[rooms[d_RoomName].players.length-1].roleId = socket.roleId;
                         socket.roomName = d_RoomName;
                         socket.nickname = xxdata.nickname;
                         socket.emit('joinSuccess',{myId : socket.roleId});  //tell clietn he joined successfully
@@ -121,6 +124,7 @@ io.on('connection', function(socket){
                                 
                         socket.broadcast.to(socket.roomName).emit('newPlayer', 
                             { nickname : rooms[d_RoomName].players[socket.roleId].nick,
+                                roleId : rooms[d_RoomName].players[socket.roleId].roleId,
                             points : rooms[d_RoomName].players[socket.roleId].points}
                         );
 
@@ -207,6 +211,7 @@ io.on('connection', function(socket){
         var nextWord = rooms[socket.roomName].word+data.letter;
 
          if (data.letter == false){
+            socket
             io.to(socket.roomName).emit('playerPassed', {player : socket.nickname,
                                         letter : data.letter,
                                         possible : getWordsStartingWith(getNodeFromString(rootNode, rooms[socket.roomName].word), rooms[socket.roomName].word)} 
@@ -216,7 +221,8 @@ io.on('connection', function(socket){
             if ( wordExistsStartingWith(rootNode, nextWord) ) {  //le jeu continue
                 rooms[socket.roomName].word += data.letter;
                 io.to(socket.roomName).emit("newLetter", {letter : data.letter, 
-                                                          player : socket.nickname});
+                                                          player : socket.nickname,
+                                                          playerRoleId : socket.roleId});
 
                 //next player = (current + 1) % nombre de joueurs;
                 var nextPlayer = (socket.roleId + 1) % rooms[socket.roomName].players.length;
@@ -275,6 +281,7 @@ function emitGameList(room){
     for (var key in rooms[room].players){
         res.push({
             nickname : rooms[room].players[key].nick,
+            roleId : rooms[room].players[key].roleId,
             points : rooms[room].players[key].points
         })
     }

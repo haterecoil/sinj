@@ -21,17 +21,18 @@
 	<div class="container-game">
 
 		<div class="header">
-			<h1 class="title-game">Le Singe</h1>
-			<p class="rules-game">Lettre par lettre forme le mot le plus long !</p>
+			<h1 class="title-game">Le Singe </h1>
+			<p class="rules-game sub">Lettre par lettre,<br> forme le mot le plus long !</p>
 		</div>
 
 
 		<div id="pseudo" class="game begin">
 		<form action="javascript:void(0)" id="nickname-form">
-			<label for="nickname" class="pseudo">Pseudo
+			<label for="nickname" class="pseudo">Pseudo :
 				<input type="text" name="nickname" id="nickname" placeholder="King Kong">
 			</label>
-			<button type="submit" class="btn-typeone">Go!</button>
+			<br>
+			<button type="submit" class="btn-typeone">Jouer !</button>
 		</form>
 		<div id="pseudo-error"></div>
 		</div>
@@ -64,6 +65,8 @@
 				l'input (placeholder == le mot actuel
 				la scène de jeu) -->
 		<div id="game" class="hidden game">
+		<p class="pending-game">En attente d'autre joueur.</p>
+
 			<ul id="game-players">
 	<!-- 			<li class="game-player">
 					<div class="gp-name"></div>
@@ -71,7 +74,7 @@
 				</li> -->
 			</ul>
 			<div id="game-board">
-				<p>Mot : <span id="gb-word"></span></p>
+				<h4>Mot : <span id="gb-word"></span></h4>
 				<ul id="game-board-ul">
 	<!-- 				<li class="g-stroke">
 						<div class="gs-player"></div>
@@ -100,10 +103,10 @@
 		<div id="score" class="hidden">
 
 			<div id="score-info">
-				<p id="score-message">
+				<h4 id="score-message">
 					<span id="sm-player"></span> a
 					<span id="sm-result"></span> !
-				</p>
+				</h4>
 				<p id="sm-message">
 					
 				</p>

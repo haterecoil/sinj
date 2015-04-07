@@ -7,22 +7,40 @@ body{
 	font-size: 18px;
 }
 
+h1{font-size: 5em;line-height: 1.5em; margin: 5px 20px;}
+h2{font-size: 4em;line-height: 1.7em;margin: 5px 20px;}
+h3{font-size: 3em;line-height: 1.5em;margin: 5px 20px;}
+h4{font-size: 1.9em;line-height: 1.5em;margin: 5px 20px;}
+h5{font-size: 1.7em;line-height: 1.5em;margin: 5px 20px;}
+
+h1 span.sub,h2 span.sub,h3 span.sub,h4 span.sub,h5 span.sub{font-size: 0.4em;display: block;color: #5F5F5F;}
+h1 span.sub{margin-top: -2.3em;}h2 span.sub{margin-top: -2.9em;}h3 span.sub{margin-top: -2.3em;}h4 span.sub{margin-top: -2.3em;}h5 span.sub{margin-top: -2.2em;}
+.sub { color: #5F5F5F;}
+p{}
+
+
 .hidden {
 	display: none;
 }
 
 .container-game{
-	margin-left: 35%;
-	width: 500px;
-	margin-top: 50px;
+	width: 960px;
+	margin: auto;
+	margin-top: 30px;
 }
+
+.header{text-align: center;}
 .title-game{
 	font-family: 'Roboto', sans-serif;
 	font-size: 80px;
+	display: inline-block;
 }
 
 .rules-game{
-	margin-top: 30px;
+  margin-left: 23px;
+  font-size: 1.8em;
+  display: inline-block;
+  text-align: left;
 }
 
 .game{
@@ -30,7 +48,7 @@ body{
 }
 
 label, input{
-	display: block;
+	display: inline-block;
 	margin: 5px;
 	border-radius: 5px;
 	border :0px solid black;
@@ -40,7 +58,7 @@ button{
 	cursor: pointer;
 }
 
-.btn-typeone, .room-join {
+/*.btn-typeone, .room-join {
   border-radius: 10px;
   color: #ffffff;
   font-size: 15px;
@@ -53,7 +71,7 @@ button{
 
 .btn-typeone:hover, .room-join:hover {
   background: #334D5C;
-}
+}*/
 
 .btn-play{
 	display: inline;
@@ -84,15 +102,32 @@ button{
 
 #rc-form{
 	border : 1px solid #334D5C;
+	margin: auto;
 	margin-top: 60px;
 	padding: 10px;
 	border-radius: 5px;
-	width: 400px;
+	width: 80%;
+}
+
+#rc-form input {
+	width: 200px;
+	float: right;
+	margin-top: -3px;
+}
+
+#rc-form label {
+	width: 500px;
 }
 
 .create-server{
 	font-size: 20px;
 	margin-bottom: 30px;
+	font-weight: 600;
+}
+
+.pending-game{
+	text-align: center;
+	color: #7E7E7E;
 }
 
 .game-player{
@@ -116,6 +151,8 @@ button{
 	margin-left: 10px;
 }
 
+h4.gp-name span.sub, span#gb-word {display: inline; font-size: 1em;}
+
 #game-board p:nth-child(1){margin: 15px;}
 
 .g-stroke{
@@ -133,3 +170,9 @@ button{
 	padding: 10px;
 	border-radius: 5px;
 }
+a{color: inherit;border-bottom: 2px solid #2F2F2F;transition: border-bottom 0.3s;text-decoration: none; cursor:pointer;}
+a:hover{border-bottom: 3px solid #2F2F2F;}
+button{  border-radius: 7%;border: 1px solid #2F2F2F;  border-bottom-width: 2px;background-color: inherit;width:auto;height: 30px;font-size: 0.8em;letter-spacing: 1px;margin: 5px; width: auto; padding: 5px 14px;transition: border-bottom-width 0.3s;}
+button:hover{border-bottom-width: 1px}
+label{font-size: 1.2em;}
+input{font-size: 0.8em;line-height: 1.5em;vertical-align: middle;}
