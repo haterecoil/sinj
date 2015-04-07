@@ -262,8 +262,8 @@ function gameEnds(reason, data){
 		$("#sm-result").css("color", colors[1]);
 		
 		message = " car il a écrit le mot le plus long !";
-		$('#sm-definition').prepend("<p> Définition de "+data.word+".</p>");
 		$('#sm-definition').load('http://www.larousse.fr/dictionnaires/francais/'+data.word+' ul.Definitions');
+		$('#sm-definition').before("<p> Définition de "+data.word+".</p>");
 	}
 
 
